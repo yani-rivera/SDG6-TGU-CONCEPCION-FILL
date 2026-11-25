@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>The Valley Under La Concepción</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: wide map strip on top, readouts + curve beside each other below, honesty note and sources last. */
+  --bg:#eef2f3; --panel:#ffffff; --ink:#18252c; --muted:#56656d; --rule:#cfd8dc;
+  --water:#1f6f8b; --deep:#0e3a52; --shallow:#7cc3c9; --accent:#c27c2c;
+  --display:"Fraunces", Georgia, serif; --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f171b; --panel:#162228; --ink:#e3ebee; --muted:#9aaab2; --rule:#2a3a42; --water:#4fa3bf; --accent:#e0a35a; color-scheme:dark; }}
+:root[data-theme="dark"]{ --bg:#0f171b; --panel:#162228; --ink:#e3ebee; --muted:#9aaab2; --rule:#2a3a42; --water:#4fa3bf; --accent:#e0a35a; color-scheme:dark; }
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--body)}
+main{max-width:1100px;margin:0 auto;padding:18px 16px 32px;display:flex;flex-direction:column;gap:16px}
+h1{font:500 clamp(26px,4.2vw,40px)/1.1 var(--display);margin:0;text-wrap:balance}
+.sub{margin:4px 0 0;color:var(--muted)}
+.mapwrap{background:var(--panel);border:1px solid var(--rule);border-radius:8px;overflow-x:auto;position:relative}
+.map{position:relative;min-width:640px}
+canvas{display:block;width:100%;height:auto}
+svg.over{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.outline{fill:none;stroke:var(--ink);stroke-width:1.2;stroke-dasharray:4 3;vector-effect:non-scaling-stroke;opacity:.6}
+.scale{position:absolute;left:10px;bottom:8px;font:600 12px var(--body);color:var(--ink)}
+.scale .bar{height:6px;border:2px solid var(--ink);border-top:0;margin-top:2px}
+.north{position:absolute;right:12px;top:8px;font:600 12px var(--body);color:var(--ink);text-align:center}
+.hint{font-size:12px;color:var(--muted);margin:4px 2px 0}
+.controls{display:grid;grid-template-columns:auto auto 1fr;gap:10px;align-items:center}
+button{font:600 15px var(--body);border:0;border-radius:999px;min-height:44px;padding:0 18px;cursor:pointer;color:#fff;background:var(--water)}
+button.alt{background:transparent;color:var(--ink);border:1px solid var(--rule)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input[type=range]{width:100%;min-height:44px;accent-color:var(--water)}
+.typed{grid-column:1/-1;font-size:14px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.typed input{font:600 16px var(--body);width:8.5em;min-height:40px;padding:4px 8px;border:1px solid var(--rule);border-radius:6px;background:var(--panel);color:var(--ink)}
+.ends{grid-column:3;display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:-10px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:14px 16px}
+.card h2{font:600 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.read{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.read div{border-left:4px solid var(--water);padding:2px 10px}
+.read b{display:block;font:500 28px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.read span{font-size:13px;color:var(--muted)}
+svg.chart{width:100%;height:auto;display:block}
+.chart text{font:11px var(--body);fill:var(--muted)}
+.chart .ax{stroke:var(--rule)}
+.chart .ln{fill:none;stroke:var(--water);stroke-width:2.2}
+.chart .ar{fill:var(--water);opacity:.15}
+.chart .band{fill:var(--accent);opacity:.14}
+.chart .ln2{fill:none;stroke:var(--accent);stroke-width:1.6;stroke-dasharray:6 4}
+.chart .off{stroke:var(--accent);stroke-dasharray:5 4;stroke-width:1.5}
+.chart .pt{fill:var(--panel);stroke:var(--ink);stroke-width:1.4}
+.chart .raw{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:3 3}
+.chart .dot{fill:var(--accent);stroke:var(--panel);stroke-width:2}
+.honest{border-left:6px solid var(--accent)}
+.honest p{margin:6px 0}
+.src{font-size:13px;color:var(--muted)}
+.src a{color:inherit;word-break:break-word}
+@media (max-width:760px){ .grid{grid-template-columns:1fr} .controls{grid-template-columns:1fr 1fr} .controls input,.ends{grid-column:1/-1} }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1 id="title"></h1>
+  <p class="sub" id="sub"></p>
+</header>
+
+<div>
+  <div class="mapwrap" id="mapwrap">
+    <div class="map" id="map">
+      <canvas id="cv" role="img" aria-label="Map of the La Concepción reservoir basin, filled to the chosen water level"></canvas>
+      <svg class="over" id="over" aria-hidden="true"></svg>
+      <div class="north" aria-hidden="true">▲<br>N</div>
+      <div class="scale"><span>500 m</span><div class="bar" id="bar"></div></div>
+    </div>
+  </div>
+  <p class="hint" id="hint">Blue is water, coloured by depth. Brown is the old valley floor, exposed. The dashed line is the full reservoir. On a phone, swipe the map sideways to see the whole valley.</p>
+</div>
+
+<div class="controls">
+  <button id="fill">Fill</button>
+  <button id="empty" class="alt">Empty</button>
+  <input type="range" id="lvl" aria-label="Water level, metres above sea level">
+  <div class="ends" aria-hidden="true"><span>Empty</span><span>Full</span></div>
+  <label class="typed" for="typed">Type a UMAPS level (m): <input type="number" id="typed" inputmode="decimal" step="0.01" min="1084" max="1160" placeholder="1140.66"></label>
+</div>
+
+<div class="grid">
+  <section class="card">
+    <h2>At this level</h2>
+    <div class="read">
+      <div><b id="r-lvl"></b><span>water level, m above sea level (calibrated)</span></div>
+      <div><b id="r-pct"></b><span>of the official capacity (36.2 million m³)</span></div>
+      <div><b id="r-vol"></b><span>million m³ of water (calibrated)</span></div>
+      <div><b id="r-area"></b><span>hectares of water surface</span></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2>Level and volume: model vs official readings</h2>
+    <svg class="chart" id="chart" viewBox="0 0 420 220" role="img" aria-label="Volume against water level"></svg>
+  </section>
+</div>
+
+<section class="card honest" id="honest"></section>
+<section class="src" id="sources"></section>
+</main>
+
+<script>
+const D = /*__DATA__*/null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const safeUrl = u => /^https:\/\/[^\s"'<>]+$/i.test(u) ? u : "#";
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+$("title").textContent = D.title;
+$("sub").textContent = D.subtitle;
+
+const C = D.curve, L0 = C[0][0], L1 = C[C.length-1][0], FULL = C[C.length-1][2];
+const lvl = $("lvl"); lvl.min = 0; lvl.max = C.length - 1; lvl.step = 1;
+
+// map
+const cv = $("cv"), ctx = cv.getContext("2d");
+cv.width = D.w; cv.height = D.h;
+$("over").setAttribute("viewBox", `0 0 ${D.w} ${D.h}`);
+$("over").innerHTML = `<path class="outline" d="${D.outline}"/>`;
+let depth, bed, out;
+
+function loadImg(src){ return new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = src; }); }
+function pixels(img){ const c = document.createElement("canvas"); c.width = D.w; c.height = D.h; const x = c.getContext("2d"); x.drawImage(img, 0, 0); return x.getImageData(0, 0, D.w, D.h).data; }
+
+function waterColor(wd){ // water depth (m) -> colour, shallow teal to deep navy
+  const t = Math.min(1, wd / 25);
+  return [124 + (14-124)*t, 195 + (58-195)*t, 201 + (82-201)*t];
+}
+function drawMap(level){
+  if (!depth) return;
+  const px = out.data;
+  for (let k = 0, n = D.w * D.h; k < n; k++){
+    const o = k*4;
+    if (depth[o+3] === 0){ px[o+3] = 0; continue; }
+    const z = -((depth[o] << 8) | depth[o+1]) / 1000;   // depth below full, <= 0
+    if (z < level){
+      const c = waterColor(level - z);
+      const shade = 0.85 + 0.15 * (bed[o] / 200);         // keep a hint of the bed relief under the water
+      px[o] = c[0]*shade; px[o+1] = c[1]*shade; px[o+2] = c[2]*shade; px[o+3] = 255;
+    } else { px[o] = bed[o]; px[o+1] = bed[o+1]; px[o+2] = bed[o+2]; px[o+3] = 255; }
+  }
+  ctx.putImageData(out, 0, 0);
+}
+
+// chart: x = volume, y = calibrated elevation
+const K = D.cal.constrained, EF = K.full_level_m_asl, S = K.s;
+const elev = l => EF + l * S;                       // reconstruction level (m below full) -> calibrated m a.s.l.
+const E0 = elev(L0), E1 = EF;
+const CW = 420, CH = 220, m = {l:52, r:12, t:12, b:34};
+const VMAX = Math.max(D.official.capacity_mm3, FULL * S);
+const sx = v => m.l + (v / VMAX) * (CW - m.l - m.r);
+const sy = e => m.t + (E1 - e) / (E1 - E0) * (CH - m.t - m.b);
+function chartBase(){
+  const cal = C.map(r => `${sx(r[2]*S).toFixed(1)},${sy(elev(r[0])).toFixed(1)}`).join(" ");
+  const raw = C.map(r => `${sx(r[2]).toFixed(1)},${sy(elev(r[0])).toFixed(1)}`).join(" ");
+  const ty = []; for (let e = Math.ceil(E0/10)*10; e <= E1; e += 10) ty.push(e);
+  return `<line class="ax" x1="${m.l}" y1="${CH-m.b}" x2="${CW-m.r}" y2="${CH-m.b}"/><line class="ax" x1="${m.l}" y1="${m.t}" x2="${m.l}" y2="${CH-m.b}"/>
+    ${ty.map(e => `<text x="${m.l-6}" y="${sy(e)+4}" text-anchor="end">${e}</text>`).join("")}
+    ${[0,10,20,30].map(v => `<text x="${sx(v)}" y="${CH-m.b+14}" text-anchor="middle">${v}</text>`).join("")}
+    <text x="${(CW+m.l)/2}" y="${CH-4}" text-anchor="middle">volume, million m³</text>
+    <text x="12" y="${(CH-m.b+m.t)/2}" transform="rotate(-90 12 ${(CH-m.b+m.t)/2})" text-anchor="middle">m above sea level</text>
+    <polygon class="ar" points="${sx(0)},${sy(E0)} ${cal} ${sx(0)},${sy(E1)}"/>
+    <polyline class="raw" points="${raw}"/>
+    <polyline class="ln" points="${cal}"/>
+    ${D.pts.map(p => `<circle class="pt" cx="${sx(p[1]).toFixed(1)}" cy="${sy(p[0]).toFixed(1)}" r="3"><title>UMAPS ${esc(p[2])}: ${p[0]} m, ${p[1]} million m³</title></circle>`).join("")}
+    <text x="${sx(FULL)+6}" y="${sy(E1)+12}">reconstruction</text>
+    <circle class="dot" id="dot" r="6"/>`;
+}
+$("chart").innerHTML = chartBase();
+
+let idx = C.length - 1, raf = null, target = null, last = 0;
+function setIdx(i){
+  idx = Math.max(0, Math.min(C.length - 1, Math.round(i)));
+  const [l, a, v] = C[idx];
+  lvl.value = idx;
+  const e = elev(l), vc = v * S;
+  $("r-lvl").textContent = e.toFixed(2);
+  $("r-pct").textContent = (100 * vc / D.official.capacity_mm3).toFixed(0) + "%";
+  $("r-vol").textContent = `${vc.toFixed(1)} ± ${K.rmse_mm3.toFixed(1)}`;
+  $("r-area").textContent = a.toFixed(0);
+  const d = $("dot"); d.setAttribute("cx", sx(vc)); d.setAttribute("cy", sy(e));
+  lvl.setAttribute("aria-valuetext", `${e.toFixed(2)} metres above sea level, about ${vc.toFixed(1)} million cubic metres`);
+  drawMap(l);
+}
+function animateTo(t){
+  cancelAnimationFrame(raf);
+  if (reduce){ setIdx(t); return; }
+  target = t; last = 0;
+  const step = now => {
+    const dt = Math.min(0.05, (now - (last || now)) / 1000); last = now;
+    const dir = Math.sign(target - idx), next = idx + dir * dt * (C.length / 5);   // full sweep in about 5 s
+    if (dir === 0 || (dir > 0 && next >= target) || (dir < 0 && next <= target)){ setIdx(target); return; }
+    setIdx(next); raf = requestAnimationFrame(step);
+  };
+  raf = requestAnimationFrame(step);
+}
+$("typed").addEventListener("change", ev => {
+  const e = parseFloat(String(ev.target.value).replace(",", "."));
+  if (!isFinite(e)) return;
+  const l = Math.max(L0, Math.min(0, (e - EF) / S));
+  cancelAnimationFrame(raf); setIdx((l - L0) / (L1 - L0) * (C.length - 1));
+});
+$("fill").addEventListener("click", () => animateTo(C.length - 1));
+$("empty").addEventListener("click", () => animateTo(0));
+lvl.addEventListener("input", e => { cancelAnimationFrame(raf); setIdx(+e.target.value); });
+
+// scale bar: 500 m in canvas units, drawn relative to displayed width
+function scale(){ const w = cv.getBoundingClientRect().width; $("bar").style.width = (500 / D.res) * (w / D.w) + "px"; }
+new ResizeObserver(scale).observe(cv);
+
+// honesty note and sources
+const o = D.official, ratio = FULL / o.capacity_mm3;
+const F = D.cal.free;
+$("honest").innerHTML = `<h2>How sure are these numbers?</h2>
+  <p><b>The valley is reconstructed from a 1956 map, then calibrated with UMAPS's own readings.</b> The raw reconstruction holds only ${FULL.toFixed(1)} million m³ when full, about ${Math.round(FULL/o.capacity_mm3*100)}% of the official ${o.capacity_mm3} million m³ (dotted grey line in the chart). Its 20 m contours got the valley's outline right but squashed its depth.</p>
+  <p><b>Calibration.</b> ${D.cal.n_points} official level–volume readings (circles) fit well when every depth is stretched ${K.s.toFixed(2)} times, with the full level at ${K.full_level_m_asl.toFixed(2)} m above sea level. The model then matches the official volumes within ±${K.rmse_mm3.toFixed(2)} million m³ on average (worst case ${Math.max(...D.cal.residuals_mm3.map(Math.abs)).toFixed(1)}, at the lowest reading), and the deepest point comes out about ${Math.round(K.max_depth_m)} m below full. Letting the capacity float gives an even closer fit (±${F.rmse_mm3.toFixed(2)}) with full at ${F.full_level_m_asl.toFixed(2)} m, but a capacity of ${F.capacity_mm3.toFixed(1)} million m³, so the official ${o.capacity_mm3} is kept.</p>
+  <p><b>Limits.</b> The readings cover levels from about 1,140 to 1,154 m; below that, the curve is the reconstruction's shape, stretched, and less certain. The full level is a model estimate, not the official maximum operating level. Sediment is not modelled separately; the official readings already include whatever sediment the rating curve accounts for.</p>`;
+$("sources").innerHTML = `<p><b>Data.</b> ${esc(D.dataset.author)}, Concepción Reservoir Bathymetry &amp; Shoreline Dataset (Honduras), ${esc(D.dataset.licence)}. Version 1: <a href="https://doi.org/${esc(D.dataset.v1_doi)}" target="_blank" rel="noopener noreferrer">doi:${esc(D.dataset.v1_doi)}</a>. This page uses the new version${D.dataset.new_version_doi && D.dataset.new_version_doi !== "TBD" ? `: <a href="https://doi.org/${esc(D.dataset.new_version_doi)}" target="_blank" rel="noopener noreferrer">doi:${esc(D.dataset.new_version_doi)}</a>` : " (DOI to follow)"}. Source map: AMS 1:50,000 Ojojona sheet (2757-IV), 1956.</p>
+  <p><b>Calibration readings.</b> UMAPS (Unidad Municipal Agua Potable y Saneamiento, Distrito Central): daily reservoir level and volume, 2015–2018, obtained through a public information request (SIELHO); 23 pairs transcribed from the response. Plus the UMAPS crisis dashboard (umaps.hn/crisis_hidrica, 23 Nov 2026: 1,140.66 m, 15.204 million m³, 42.00%) and a UMAPS reading reported by El Heraldo (1,143.30 m, 17.662 million m³).</p>
+  <p><b>Official capacity.</b> ${esc(o.capacity_source)}: <a href="${esc(safeUrl(o.capacity_url))}" target="_blank" rel="noopener noreferrer">El Heraldo</a>. ${esc(o.full_2024_source)}: <a href="${esc(safeUrl(o.full_2024_url))}" target="_blank" rel="noopener noreferrer">El Heraldo</a>.</p>
+  <p>Centre ${D.center[1].toFixed(4)}° N, ${Math.abs(D.center[0]).toFixed(4)}° W · WGS 84 / UTM 16N, ${D.res.toFixed(0)} m cells · v${esc(D.version)}</p>`;
+
+Promise.all([loadImg(D.depth_png), loadImg(D.bed_png)]).then(([a, b]) => {
+  depth = pixels(a); bed = pixels(b); out = ctx.createImageData(D.w, D.h); setIdx(C.length - 1); scale();
+  const mw = $("mapwrap"); mw.scrollLeft = mw.scrollWidth;   // on narrow screens, open on the dam end where the deep water is
+}).catch(() => { $("hint").textContent = "The map images did not load. Reload the page."; });
+setIdx(C.length - 1);
+</script>
+</body>
+</html>

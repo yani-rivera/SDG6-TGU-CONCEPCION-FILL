@@ -1,0 +1,44 @@
+project: concepcion_fill_empty
+version: "1.2.0"
+title: "The Valley Under La Concepción"
+subtitle: "Fill and empty Tegucigalpa's main reservoir, on its reconstructed pre-dam valley"
+
+inputs:
+  depth_tif: data/ConcepcionDEM.tif                       # depth below maximum operating level (m, <= 0), EPSG:32616, 5 m
+  contour_polygons: data/ConcepcionContourPolygones20261123.gpkg
+
+curve:
+  step_m: 0.1          # level step for the level–area–volume table
+
+render:
+  hillshade_azimuth: 315
+  hillshade_altitude: 45
+  z_factor: 2.0        # vertical exaggeration for the bed hillshade only
+
+official:              # official figures shown next to the reconstruction (honesty note)
+  capacity_mm3: 36.2
+  capacity_source: "El Heraldo, 'Represas lograrán su máximo nivel…', citing the authorities: 36.2 million m³ to reach the maximum level"
+  capacity_url: "https://www.elheraldo.hn/tegucigalpa/1385495-468/represas-lograrán-su-máximo-nivel-y-no-habrá-extremos-racionamientos"
+  full_2024_mm3: 32
+  full_2024_source: "El Heraldo (Oct 2025): full at 32 million m³ in Nov 2024, as in 2017 and 2018"
+  full_2024_url: "https://www.elheraldo.hn/tegucigalpa/represa-concepcion-alcanza-nivel-maximo-segundo-ano-consecutivo-HG27748384"
+
+range:                 # rescale the reconstructed curve so "full" matches each target (shape kept, total corrected)
+  targets_mm3: [32, 36.2]      # reported full in Nov 2024; official design capacity
+  labels: ["reported full, 2024", "official capacity"]
+
+catalogs:
+  umaps_points: catalogs/umaps_level_volume.csv
+
+calibration:
+  grid: {s_min: 1.0, s_max: 3.5, s_step: 0.01, full_min: 1150.0, full_max: 1165.0, full_step: 0.05}
+
+dataset:
+  v1_doi: "10.5281/zenodo.17674907"
+  new_version_doi: "TBD"   # replace with the DOI of the new Zenodo version before publishing
+  author: "Rivera, Yanira A."
+  licence: "CC BY 4.0"
+
+outputs:
+  dir: out
+  encoding: utf-8-sig

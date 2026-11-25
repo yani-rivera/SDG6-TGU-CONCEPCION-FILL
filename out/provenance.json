@@ -1,0 +1,70 @@
+{
+  "project": "concepcion_fill_empty",
+  "script_version": "1.2.0",
+  "run_utc": "2026-11-23T19:01:42+00:00",
+  "python": "3.13.18",
+  "inputs": {
+    "depth_tif": {
+      "path": "data/ConcepcionDEM.tif",
+      "sha256": "5e1fe74d004ec0aeb85351a6e9c2a173a66c700996352ab8a245fbd5dee2dd73"
+    },
+    "contour_polygons": {
+      "path": "data/ConcepcionContourPolygones20261123.gpkg",
+      "sha256": "7803a9dd4591e2a52e3f4ac6ecd1744c2ee8a323e22e9c3abdb742682ed07d49"
+    },
+    "umaps_points": {
+      "path": "catalogs/umaps_level_volume.csv",
+      "sha256": "df4c02fe67442c807596391b58d96697afdcdb710a5a6c5b284507430de54eb6"
+    }
+  },
+  "outputs": {
+    "curve_csv": {
+      "path": "out/level_area_volume.csv",
+      "sha256": "994248036b1058aa294d2924c92ccc4c7d7edbdf6a1a46c99f7a5116b5558246"
+    },
+    "calibration_points_csv": {
+      "path": "out/calibration_points.csv",
+      "sha256": "d254b78e99dde0f440a6f8f1012f64f5917889cbd92c908fcc7e543d141c0122"
+    },
+    "page": {
+      "path": "out/index.html",
+      "sha256": "db385af27f7789c2748c0ff35b00691803780e220b83480a9850e8cdad8cd4f2"
+    }
+  },
+  "notes": {
+    "cells": 74904,
+    "cell_m2": 24.913,
+    "max_depth_m": 35.0,
+    "full_area_ha": 175.95,
+    "full_volume_mm3": 17.306,
+    "official_capacity_mm3": 36.2,
+    "ratio_reconstructed_to_official": 0.478,
+    "range_targets_mm3": [
+      32,
+      36.2
+    ],
+    "zero_offset_needed_m": [
+      7.9,
+      10.1
+    ],
+    "basin_area_incl_rim_ha": 186.61,
+    "crs": "EPSG:32616",
+    "calibration": {
+      "constrained": {
+        "s": 2.0918,
+        "full_level_m_asl": 1156.75,
+        "rmse_mm3": 0.326,
+        "capacity_mm3": 36.2,
+        "max_depth_m": 73.2
+      },
+      "free": {
+        "s": 2.31,
+        "full_level_m_asl": 1159.45,
+        "rmse_mm3": 0.128,
+        "capacity_mm3": 39.98,
+        "max_depth_m": 80.9
+      },
+      "n_points": 25
+    }
+  }
+}
